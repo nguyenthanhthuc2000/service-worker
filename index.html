@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thư viện Ảnh</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/index.js');
+    });
+  }
+</script>
+
+<body>
+  <div class="gallery">
+    <div class="image-container cache-first">
+      <img src="images/cache-first.gif" data-strategy="cache-first" alt="cache-first">
+    </div>
+    <div class="image-container cache-only">
+      <img src="images/cache-only.jpg" data-strategy="cache-only" alt="cache-only">
+    </div>
+    <div class="image-container network-first">
+      <img src="images/network-first.jpg" data-strategy="network-first" alt="network-first">
+    </div>
+    <div class="image-container network-only">
+      <img src="images/network-only.jpg" data-strategy="network-only" alt="network-only">
+    </div>
+    <div class="image-container stale-while-revalidate">
+      <img src="images/stale-while-revalidate.jpg" data-strategy="stale-while-revalidate" alt="stale-while-revalidate">
+    </div>
+  </div>
+</body>
+
+</html>
