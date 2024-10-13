@@ -1,67 +1,63 @@
-const PRECACHE = "my-precache-v1";
-const RUNTIME = "my-runtime";
+const addResourceToCache = async (resource) => {
+  const cache = await caches.open("v1");
+  await cache.addAll(resource);
+}
 
-// A list of local resources we always want to be cached.
-const PRECACHE_URLS = [
-  "index.html",
-  "./", // Alias for index.html
-  "style.css",
-  "index.js",
-];
-
-// The install handler takes care of precaching the resources we always need.
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches
-      .open(PRECACHE)
-      .then((cache) => cache.addAll(PRECACHE_URLS))
-      .then(self.skipWaiting())
-  );
-});
-
-// The activate handler takes care of cleaning up old caches.
-self.addEventListener("activate", (event) => {
-  const currentCaches = [PRECACHE, RUNTIME];
-  event.waitUntil(
-    caches
-      .keys()
-      .then((cacheNames) => {
-        return cacheNames.filter(
-          (cacheName) => !currentCaches.includes(cacheName)
-        );
-      })
-      .then((cachesToDelete) => {
-        return Promise.all(
-          cachesToDelete.map((cacheToDelete) => {
-            return caches.delete(cacheToDelete);
-          })
-        );
-      })
-      .then(() => self.clients.claim())
-  );
-});
-
-// The fetch handler serves responses for same-origin resources from a cache.
-// If no response is found, it populates the runtime cache with the response
-// from the network before returning it to the page.
-self.addEventListener("fetch", (event) => {
-  // Skip cross-origin requests, like those for Google Analytics.
-  if (event.request.url.startsWith(self.location.origin)) {
-    event.respondWith(
-      caches.match(event.request).then((cachedResponse) => {
-        if (cachedResponse) {
-          return cachedResponse;
-        }
-
-        return caches.open(RUNTIME).then((cache) => {
-          return fetch(event.request).then((response) => {
-            // Put a copy of the response in the runtime cache.
-            return cache.put(event.request, response.clone()).then(() => {
-              return response;
-            });
-          });
-        });
-      })
-    );
+const cacheFirst = async (request) => {
+  const responseFromCache = await caches.match(request);
+  if (responseFromCache) {
+    // Fetch the latest resource in the background
+    fetch(request).then((response) => {
+      // Update the cache with the latest version
+      if (response && response.ok) {
+        cache.put(request, response.clone());
+      }
+    });
+    return responseFromCache; // Return cached response
   }
+
+  // If not in cache, fetch from the network
+  const responseFromNetwork = await fetch(request);
+
+  // Update the cache with the network response
+  if (responseFromNetwork && responseFromNetwork.ok) {
+    cache.put(request, responseFromNetwork.clone());
+  }
+  
+  return responseFromNetwork;
+};
+
+self.addEventListener('install', async (event) => {
+  event.waitUntil(
+    addResourceToCache([
+      '/images/cache-first.gif', 
+      '/images/pexels-alinaskazka-28859391.jpg', 
+      '/images/pexels-aljona-ovtsinnikova-121486965-27363152 (1).jpg', 
+      '/images/pexels-efrem-efre-2786187-28763589.jpg', 
+      '/images/pexels-erika-andrade-1358382831-28874283.jpg', 
+      '/images/pexels-ertabbt-150087708-19025446.jpg', 
+      '/images/pexels-eugenia-remark-5767088-28856736.jpg', 
+      '/images/pexels-jan-van-bizar-92378004-12266858.jpg', 
+      '/images/pexels-leefinvrede-27015911.jpg', 
+      '/images/pexels-lvu-image-1599405908-28570315.jpg', 
+      '/images/cache-only.jpg', 
+      '/images/network-first.jpg', 
+      '/images/network-only.jpg', 
+      '/images/stale-while-revalidate.jpg', 
+      '/images/pexels-ryank-21193046.jpg', 
+      '/images/pexels-ryank-21193046 (1).jpg', 
+      '/images/pexels-premsinghtanwar-25189329.jpg', 
+      '/images/pexels-pincalo-18936031.jpg', 
+      '/images/pexels-njeromin-28772394.jpg', 
+      '/images/pexels-nikitapishchugin-28494944.jpg', 
+      '/images/pexels-nati-87264186-28716782.jpg',
+      '/images/favicon.ico',
+      '/style.css',
+      '/index.html',
+    ]),
+  );
+});
+
+self.addEventListener("fetch", (event) => {
+  event.respondWith(cacheFirst(event.request));
 });
