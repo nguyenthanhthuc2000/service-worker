@@ -1,31 +1,46 @@
+const CACHE_NAME = 'v1';
+
 const addResourceToCache = async (resource) => {
-  const cache = await caches.open("v1");
+  const cache = await caches.open(CACHE_NAME);
   await cache.addAll(resource);
 }
 
 const cacheFirst = async (request) => {
-  const responseFromCache = await caches.match(request);
+  const cache = await caches.open(CACHE_NAME); // Đặt tên cho cache
+
+  // Kiểm tra xem phản hồi có trong cache không
+  const responseFromCache = await cache.match(request);
   if (responseFromCache) {
     // Fetch the latest resource in the background
-    fetch(request).then((response) => {
-      // Update the cache with the latest version
-      if (response && response.ok) {
-        cache.put(request, response.clone());
-      }
-    });
+    fetch(request)
+      .then((response) => {
+        // Update the cache with the latest version
+        if (response && response.ok) {
+          cache.put(request, response.clone());
+        }
+      })
+      .catch((error) => {
+        console.error('Fetch failed:', error);
+      });
     return responseFromCache; // Return cached response
   }
 
-  // If not in cache, fetch from the network
-  const responseFromNetwork = await fetch(request);
+  // Nếu không có trong cache, fetch từ mạng
+  try {
+    const responseFromNetwork = await fetch(request);
 
-  // Update the cache with the network response
-  if (responseFromNetwork && responseFromNetwork.ok) {
-    cache.put(request, responseFromNetwork.clone());
+    // Update the cache with the network response
+    if (responseFromNetwork && responseFromNetwork.ok) {
+      cache.put(request, responseFromNetwork.clone());
+    }
+
+    return responseFromNetwork;
+  } catch (error) {
+    console.error('Network request failed:', error);
+    throw error; // Hoặc xử lý lỗi theo cách khác
   }
-  
-  return responseFromNetwork;
 };
+
 
 self.addEventListener('install', async (event) => {
   event.waitUntil(
