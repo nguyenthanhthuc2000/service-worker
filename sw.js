@@ -1,6 +1,6 @@
 // Tài liệu: https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API/Using_Service_Workers
 
-const CACHE_NAME = 'test';
+const CACHE_NAME = 'test17777';
 const imagesToCache = [
   '/images/pexels-alinaskazka-28859391.jpg',
   '/images/pexels-efrem-efre-2786187-28763589.jpg',
@@ -33,7 +33,6 @@ const updateCache = async (request) => {
 
 // Ưu tiên data từ cache
 const cacheFirst = async (request) => {
-  const cache = await caches.open(CACHE_NAME);
   const responseFromCache = await caches.match(request);
   if (responseFromCache) {
     updateCache(request);
@@ -43,13 +42,26 @@ const cacheFirst = async (request) => {
   return updateCache(request) || fetch(request); 
 };
 
+// Xoá cache cũ
+const deleteCache = async (key) => {
+  console.log(key);
+  await caches.delete(key);
+};
+
+const deleteOldCaches = async () => {
+  const cacheKeepList = [CACHE_NAME];
+  const keyList = await caches.keys();
+  const cachesToDelete = keyList.filter((key) => !cacheKeepList.includes(key));
+  console.log(cachesToDelete)
+  await Promise.all(cachesToDelete.map(deleteCache));
+};
 
 // Bắt sự kiện install
 self.addEventListener("install", (event) => {
   event.waitUntil(
     addResourcesToCache([
       ...imagesToCache
-    ]),
+    ]).then(() => self.skipWaiting()) // Skip waiting để kích hoạt SW mới,
   );
 });
 
@@ -59,4 +71,13 @@ self.addEventListener("fetch", (event) => {
   if (event.request.method === 'GET') {
     event.respondWith(cacheFirst(event.request));
   }
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    deleteOldCaches()
+      .then(() => {
+        return clients.claim();  // Claim tất cả các client hiện tại
+      })
+  );
 });
