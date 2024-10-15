@@ -9,32 +9,24 @@
   <link rel="stylesheet" href="./style.css">
 </head>
 <script>
-  const registerServiceWorker = async () => {
-    if ("serviceWorker" in navigator) {
-      try {
-        const registration = await navigator.serviceWorker.register("/service-worker.js", {
-          scope: "/",
-        });
-        if (registration.installing) {
-          console.log("Service worker installing");
-        } else if (registration.waiting) {
-          console.log("Service worker installed");
-        } else if (registration.active) {
-          console.log("Service worker active");
-        }
-      } catch (error) {
-        console.error(`Registration failed with ${error}`);
-      }
-    }
-  };
-
-  registerServiceWorker();
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw.js", { scope: "./" }).then(
+      (registration) => {
+        console.log("Service worker registration succeeded:", registration);
+      },
+      (error) => {
+        console.error(`Service worker registration failed: ${error}`);
+      },
+    );
+  } else {
+    console.error("Service workers are not supported.");
+  }
 </script>
 
 <body>
   <div id="image-gallery" class="gallery">
-    <div class="image-container stale-while-revalidate"><img src="images/cache-first.gif" alt="cache-first" loading="lazy">
-    </div>
+    <!-- <div class="image-container stale-while-revalidate"><img src="images/cache-first.gif" alt="cache-first" loading="lazy">
+    </div> -->
     <div class="image-container stale-while-revalidate"><img src="images/pexels-alinaskazka-28859391.jpg" alt="cache-first"
         loading="lazy"></div>
     <div class="image-container stale-while-revalidate"><img
@@ -47,7 +39,7 @@
         alt="cache-first" loading="lazy"></div>
     <div class="image-container stale-while-revalidate"><img src="images/pexels-eugenia-remark-5767088-28856736.jpg"
         alt="cache-first" loading="lazy"></div>
-    <div class="image-container stale-while-revalidate"><img src="images/pexels-jan-van-bizar-92378004-12266858.jpg"
+    <!-- <div class="image-container stale-while-revalidate"><img src="images/pexels-jan-van-bizar-92378004-12266858.jpg"
         alt="cache-first" loading="lazy"></div>
     <div class="image-container stale-while-revalidate"><img src="images/pexels-leefinvrede-27015911.jpg" alt="cache-first"
         loading="lazy"></div>
@@ -74,7 +66,7 @@
     <div class="image-container stale-while-revalidate"><img src="images/pexels-nikitapishchugin-28494944.jpg"
         alt="stale-while-revalidate" loading="lazy"></div>
     <div class="image-container stale-while-revalidate"><img src="images/pexels-nati-87264186-28716782.jpg"
-        alt="stale-while-revalidate" loading="lazy"></div>
+        alt="stale-while-revalidate" loading="lazy"></div> -->
   </div>
 </body>
 
